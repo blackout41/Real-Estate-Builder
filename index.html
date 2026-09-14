@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Property Inventory Command Center</title>
+<style>
+:root{--bg:#0a0f1c;--panel:#111827;--panel2:#182235;--line:#2a3852;--text:#edf3ff;--muted:#8fa0bd;--accent:#5ea1ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Arial,sans-serif}
+button,input,select,textarea{font:inherit}button{cursor:pointer}.app{min-height:100vh;display:flex;flex-direction:column}
+header{height:68px;padding:12px 18px;border-bottom:1px solid var(--line);background:#0d1422;display:flex;align-items:center;justify-content:space-between;gap:12px}
+h1{font-size:19px;margin:0}.sub{font-size:11px;color:var(--muted);margin-top:3px}.actions{display:flex;gap:7px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:7px;padding:8px 11px}.btn.primary{background:#245b9b;border-color:#3479c8}.btn.danger{background:#542535;border-color:#7e354d}
+main{display:grid;grid-template-columns:1fr 390px;min-height:calc(100vh - 68px)}
+.workspace{min-width:0;display:flex;flex-direction:column}.toolbar{padding:10px;border-bottom:1px solid var(--line);display:flex;gap:7px;flex-wrap:wrap;background:#0e1626}
+input,select,textarea{background:#0c1423;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:8px}.search{flex:1;min-width:220px}
+.map-area{position:relative;flex:1;overflow:auto;background:
+linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:40px 40px}
+.map{position:relative;width:2200px;height:1400px}
+.road{position:absolute;background:#28354d;border:1px solid #3b4b69;color:#a9b7d0;font-size:10px;display:flex;align-items:center;justify-content:center;letter-spacing:1px;cursor:grab;z-index:2}
+.road.selected,.area.selected{outline:2px solid #fff}
+.area{position:absolute;border:1px dashed #526684;background:#ffffff04;border-radius:12px;padding:14px;cursor:grab;z-index:1}
+.area .area-name{font-size:17px;font-weight:800;color:#7385a3;letter-spacing:1px}.area .area-sub{font-size:10px;color:#52627e;margin-top:3px}
+.road.h{height:42px}.road.v{width:42px}
+.resize-handle{position:absolute;background:var(--accent);border:1px solid #0a0f1c;z-index:6;touch-action:none}
+.area .resize-handle{width:14px;height:14px;right:-7px;bottom:-7px;border-radius:4px;cursor:nwse-resize}
+.road.h .resize-handle{width:10px;height:100%;right:-5px;top:0;border-radius:3px;cursor:ew-resize}
+.road.v .resize-handle{height:10px;width:100%;bottom:-5px;left:0;border-radius:3px;cursor:ns-resize}
+.map-empty-hint{position:absolute;left:50%;top:40px;transform:translateX(-50%);color:#42506e;font-size:12px;border:1px dashed #2a3852;border-radius:10px;padding:10px 16px;pointer-events:none}
+.plot{position:absolute;z-index:10;border:1px solid #6c7d9b;border-radius:5px;color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px;user-select:none;cursor:grab;overflow:hidden;min-width:45px;min-height:35px;box-shadow:0 2px 7px #0007}
+.plot:active{cursor:grabbing}.plot:hover{filter:brightness(1.15);z-index:20}.plot.selected{outline:2px solid white;z-index:30}
+.plot .pid{font-weight:800;font-size:11px}.plot .psize{font-size:9px}.plot .powner{font-size:8px;color:#d1dbed;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:95%}
+.owned{background:#15543e}.family{background:#18527c}.booked{background:#78601d}.application{background:#593b7f}.selling{background:#824725}.sold{background:#5a2937}.notowned{background:#303b51}.unknown{background:#3d4655}
+.block-label{position:absolute;font-size:20px;font-weight:800;color:#60708e;letter-spacing:2px;pointer-events:none}
+.statusbar{position:absolute;left:12px;bottom:12px;background:#0c1423dd;border:1px solid var(--line);border-radius:7px;padding:7px 10px;color:var(--muted);font-size:10px;z-index:50}
+.legend{padding:7px 10px;border-top:1px solid var(--line);display:flex;gap:12px;flex-wrap:wrap;background:#0d1422}.legend span{font-size:10px;color:var(--muted)}.dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px}
+.panel{background:var(--panel);border-left:1px solid var(--line);overflow:auto}.panel-head{padding:15px;border-bottom:1px solid var(--line)}.panel-head h2{font-size:17px;margin:0}.panel-head p{font-size:11px;color:var(--muted);margin:4px 0 0}.editor{padding:13px}.section{font-size:10px;color:#7f91af;text-transform:uppercase;letter-spacing:1px;margin:12px 0 7px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.field{display:flex;flex-direction:column;gap:4px}.field.full{grid-column:1/-1}.field label{font-size:9px;color:var(--muted);text-transform:uppercase}.field input,.field select,.field textarea{width:100%}.field textarea{min-height:70px;resize:vertical}
+.savebar{position:sticky;bottom:0;padding:10px 13px;background:#0d1422;border-top:1px solid var(--line);display:flex;gap:7px}.savebar button{flex:1}
+.empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:12px}
+.stats{display:flex;gap:7px;padding:9px 10px;border-bottom:1px solid var(--line);overflow:auto}.stat{min-width:120px;background:var(--panel);border:1px solid var(--line);padding:8px;border-radius:6px}.stat b{display:block;font-size:15px}.stat span{font-size:9px;color:var(--muted)}
+.help{padding:10px;background:#101b30;border:1px solid #28446b;border-radius:7px;color:#b8c8e2;font-size:10px;line-height:1.5;margin-bottom:10px}
+@media(max-width:1000px){main{grid-template-columns:1fr}.panel{border-left:0;border-top:1px solid var(--line);max-height:none}.map-area{height:650px;flex:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+ <div><h1>Property Inventory Command Center</h1><div class="sub">Editable visual inventory • Google Sheets database • drag & drop plots, roads and areas on a blank canvas</div></div>
+ <div class="actions">
+  <button class="btn" onclick="promptWebAppUrl()">⚙ Connect Sheet</button>
+  <button class="btn" onclick="loadData()">↻ Reload from Sheet</button>
+  <button class="btn primary" onclick="saveToSheet()">☁ Save to Sheet</button>
+  <button class="btn" onclick="addPlot()">＋ Add Plot</button>
+  <button class="btn" onclick="addArea()">＋ Add Area</button>
+  <button class="btn" onclick="addRoad()">＋ Add Road</button>
+  <button class="btn" onclick="duplicatePlot()">Duplicate</button>
+  <button class="btn danger" onclick="deletePlot()">Delete</button>
+  <button class="btn" onclick="exportCSV()">Export CSV backup</button>
+  <button class="btn" onclick="exportMap()">Export map backup</button>
+  <label class="btn" style="display:inline-flex;align-items:center">Load map backup <input id="mapFile" type="file" accept=".json" style="display:none" onchange="importMap(event)"></label>
+ </div>
+</header>
+<main>
+<section class="workspace">
+ <div class="toolbar">
+  <select id="projectFilter" onchange="render()"><option value="ALL">All Projects</option></select>
+  <select id="blockFilter" onchange="render()"><option value="ALL">All Blocks</option></select>
+  <select id="statusFilter" onchange="render()"><option value="ALL">All Statuses</option></select>
+  <select id="typeFilter" onchange="render()"><option value="ALL">All Types</option></select>
+  <input id="search" class="search" placeholder="Search plot, owner, tenant, notes..." oninput="render()">
+ </div>
+ <div class="stats">
+  <div class="stat"><b id="sPlots">0</b><span>Visible plots</span></div>
+  <div class="stat"><b id="sOwned">0</b><span>Owned / controlled</span></div>
+  <div class="stat"><b id="sValue">Rs 0</b><span>Current value</span></div>
+  <div class="stat"><b id="sCost">Rs 0</b><span>Purchase cost</span></div>
+  <div class="stat"><b id="sRent">Rs 0</b><span>Monthly rent</span></div>
+ </div>
+ <div class="map-area" id="mapArea">
+  <div id="map" class="map"></div>
+  <div class="statusbar" id="mapStatus">Drag a plot, road or area to reposition it • drag the blue handle to resize a road/area • double-click anything to edit its name/size</div>
+ </div>
+ <div class="legend">
+  <span><i class="dot owned"></i>Owned</span><span><i class="dot family"></i>Family/Partner</span><span><i class="dot booked"></i>Booked/Token</span><span><i class="dot application"></i>Ballot</span><span><i class="dot selling"></i>Selling</span><span><i class="dot sold"></i>Sold</span><span><i class="dot notowned"></i>Not Owned</span><span><i class="dot unknown"></i>Unknown</span>
+ </div>
+</section>
+<aside class="panel">
+ <div class="panel-head"><h2 id="detailTitle">Property Editor</h2><p id="detailSub">Select a plot, or click “Add Plot”.</p></div>
+ <div id="editor" class="empty">Every field can be edited here. Dragging a plot changes its X/Y position on the visual map.</div>
+</aside>
+</main>
+</div>
+
+<script>
+// =============================================================
+// GOOGLE SHEETS SYNC
+// This file talks to YOUR Google Sheet through a tiny Apps Script
+// "Web App" that you deploy once (free, no server needed). It can
+// both READ and WRITE, so your inventory persists between visits
+// instead of resetting. Click "⚙ Connect Sheet" in the header and
+// follow SETUP.md (shared alongside this file) to get your URL,
+// then paste it in — it's remembered in this browser afterwards.
+// =============================================================
+let WEB_APP_URL = localStorage.getItem("PROPCC_WEBAPP_URL") || "";
+
+const HEADERS = [
+ "ID","PROJECT","BLOCK","PLOT_NO","PROPERTY_TYPE","SIZE","WIDTH","LENGTH",
+ "STATUS","OWNER","PURCHASE_PRICE","CURRENT_VALUE","RENT","TENANT",
+ "POSSESSION","DOCUMENT_STATUS","PURCHASE_DATE","SOURCE","NOTES","X","Y","W","H"
+];
+
+let properties=[], selectedId=null, dirty=false;
+let selectedMapObject=null;
+
+// These are independent from property data — a blank canvas by default.
+// Use "+ Add Area" / "+ Add Road" to build your own map from scratch:
+// name them, drag them to position, and drag the blue handle (or use the
+// panel fields) to resize them freely.
+let MAP_AREAS=[];
+let MAP_ROADS=[];
+
+// Shown only until you connect a real Sheet, so the app isn't empty
+// while you're setting things up.
+const demoData=[
+ {ID:"ME-C-127",PROJECT:"Margalla Enclave",BLOCK:"C",PLOT_NO:"127",PROPERTY_TYPE:"Residential",SIZE:"1 Kanal",WIDTH:50,LENGTH:90,STATUS:"OWNED",OWNER:"Asfand",PURCHASE_PRICE:42000000,CURRENT_VALUE:51000000,RENT:0,TENANT:"",POSSESSION:"Yes",DOCUMENT_STATUS:"Complete",PURCHASE_DATE:"Jan 2026",SOURCE:"Direct",NOTES:"Margalla-facing plot (demo)",X:100,Y:90,W:120,H:70},
+ {ID:"PWD-P01",PROJECT:"PWD",BLOCK:"Double Road",PLOT_NO:"P01",PROPERTY_TYPE:"Commercial Plaza",SIZE:"50×90",WIDTH:50,LENGTH:90,STATUS:"OWNED",OWNER:"Asfand",PURCHASE_PRICE:350000000,CURRENT_VALUE:380000000,RENT:1250000,TENANT:"London Bakers",POSSESSION:"Yes",DOCUMENT_STATUS:"Complete",PURCHASE_DATE:"2024",SOURCE:"Direct",NOTES:"Commercial plaza (demo)",X:280,Y:90,W:145,H:90}
+];
+
+function loadData(){
+ const status=document.getElementById("mapStatus");
+ if(!WEB_APP_URL){
+  properties=properties.length?properties:demoData.map(p=>({...p}));
+  status.textContent="Not connected to a Google Sheet yet • click ⚙ Connect Sheet above (see SETUP.md) • showing sample data for now";
+  populateFilters();render();return;
+ }
+ status.textContent="Loading from Google Sheet…";
+ fetch(`${WEB_APP_URL}?action=read&t=${Date.now()}`)
+ .then(r=>{if(!r.ok)throw Error("HTTP "+r.status);return r.json()})
+ .then(j=>{
+  if(j.status==="error")throw Error(j.message||"Sheet returned an error");
+  properties=(j.properties||[]).map(normalize);
+  MAP_AREAS=(j.mapAreas||[]).map(a=>({id:a.id,name:a.name||"Area",subtitle:a.subtitle||"",x:n2(a.x,40),y:n2(a.y,40),w:n2(a.w,400),h:n2(a.h,240)}));
+  MAP_ROADS=(j.mapRoads||[]).map(r=>({id:r.id,name:r.name||"Road",x:n2(r.x,40),y:n2(r.y,300),w:n2(r.w,400),h:n2(r.h,42),orientation:r.orientation==="v"?"v":"h"}));
+  dirty=false;selectedId=null;selectedMapObject=null;
+  status.textContent=`Loaded ${properties.length} plot(s), ${MAP_AREAS.length} area(s), ${MAP_ROADS.length} road(s) from Google Sheet • ${new Date().toLocaleTimeString()}`;
+  populateFilters();render();
+ })
+ .catch(e=>{console.error(e);status.textContent="Could not load your Google Sheet — check the Web App URL, deployment access ('Anyone'), and that Apps Script is redeployed after edits.";});
+}
+function saveToSheet(){
+ if(!WEB_APP_URL){promptWebAppUrl();return;}
+ mapStatus.textContent="Saving to Google Sheet…";
+ fetch(WEB_APP_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({properties,mapAreas:MAP_AREAS,mapRoads:MAP_ROADS})})
+ .then(r=>{if(!r.ok)throw Error("HTTP "+r.status);return r.json()})
+ .then(j=>{
+  if(j.status!=="ok")throw Error(j.message||"Sheet returned an error");
+  dirty=false;mapStatus.textContent="Saved to Google Sheet • "+new Date().toLocaleTimeString();
+ })
+ .catch(e=>{console.error(e);mapStatus.textContent="Save failed — check the Web App URL / deployment access, then try again.";});
+}
+function promptWebAppUrl(){
+ const url=prompt("Paste your Google Apps Script Web App URL (see SETUP.md for how to get this):",WEB_APP_URL||"");
+ if(url===null)return;
+ WEB_APP_URL=url.trim();
+ localStorage.setItem("PROPCC_WEBAPP_URL",WEB_APP_URL);
+ if(WEB_APP_URL)loadData();else mapStatus.textContent="Disconnected from Google Sheets • working locally only";
+}
+function normalize(o){
+ const x={};HEADERS.forEach(h=>x[h]=o[h]??"");
+ ["WIDTH","LENGTH","PURCHASE_PRICE","CURRENT_VALUE","RENT","X","Y","W","H"].forEach(k=>{if(x[k]!==""&&!isNaN(Number(String(x[k]).replace(/,/g,""))))x[k]=Number(String(x[k]).replace(/,/g,""))});
+ x.STATUS=String(x.STATUS||"UNKNOWN").toUpperCase().replace(/\s+/g,"_");return x;
+}
+function populateFilters(){
+ fill("projectFilter","All Projects",[...new Set(properties.map(p=>p.PROJECT).filter(Boolean))].sort());
+ fill("blockFilter","All Blocks",[...new Set(properties.map(p=>p.BLOCK).filter(Boolean))].sort());
+ fill("statusFilter","All Statuses",[...new Set(properties.map(p=>p.STATUS).filter(Boolean))].sort());
+ fill("typeFilter","All Types",[...new Set(properties.map(p=>p.PROPERTY_TYPE).filter(Boolean))].sort());
+}
+function fill(id,first,items){const e=document.getElementById(id),old=e.value;e.innerHTML=`<option value="ALL">${first}</option>`+items.map(x=>`<option value="${esc(x)}">${esc(pretty(x))}</option>`).join("");if(items.includes(old))e.value=old}
+function filtered(){
+ const f={project:projectFilter.value,block:blockFilter.value,status:statusFilter.value,type:typeFilter.value,q:search.value.toLowerCase()};
+ return properties.filter(p=>(f.project==="ALL"||p.PROJECT===f.project)&&(f.block==="ALL"||p.BLOCK===f.block)&&(f.status==="ALL"||p.STATUS===f.status)&&(f.type==="ALL"||p.PROPERTY_TYPE===f.type)&&(!f.q||Object.values(p).join(" ").toLowerCase().includes(f.q)));
+}
+function render(){
+ const rows=filtered();
+ sPlots.textContent=rows.length;sOwned.textContent=rows.filter(p=>["OWNED","FAMILY","PARTNERSHIP"].includes(p.STATUS)).length;
+ sValue.textContent=money(rows.reduce((a,p)=>a+n(p.CURRENT_VALUE),0));sCost.textContent=money(rows.reduce((a,p)=>a+n(p.PURCHASE_PRICE),0));sRent.textContent=money(rows.reduce((a,p)=>a+n(p.RENT),0));
+ let html="";
+  if(MAP_AREAS.length===0&&MAP_ROADS.length===0){
+   html+=`<div class="map-empty-hint">Blank canvas — use “＋ Add Area” / “＋ Add Road” above to start building your own map layout.</div>`;
+  }
+  MAP_AREAS.forEach(a=>{html+=areaHTML(a)});
+  MAP_ROADS.forEach(r=>{html+=roadHTML(r)});
+  rows.forEach(p=>{html+=plotHTML(p)});
+ map.innerHTML=html;
+ if(selectedId){const p=properties.find(x=>x.ID===selectedId);if(p) showEditor(p)}
+}
+function plotHTML(p){
+ const cls=statusClass(p.STATUS),x=npos(p.X,50),y=npos(p.Y,80),w=npos(p.W,100),h=npos(p.H,65);
+ return `<div class="plot ${cls} ${selectedId===p.ID?"selected":""}" data-id="${esc(p.ID)}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">
+ <div class="pid">${esc(p.PLOT_NO||p.ID)}</div><div class="psize">${esc(p.SIZE||"")}</div><div class="powner">${esc(p.OWNER||pretty(p.STATUS))}</div></div>`;
+}
+// Pointer drag: moves/resizes plots, roads & areas without a library.
+let drag=null, resize=null;
+map.addEventListener("pointerdown",e=>{
+ const handle=e.target.closest(".resize-handle");
+ if(handle){
+  const host=handle.closest("[data-maptype]");if(!host)return;
+  const type=host.dataset.maptype,id=host.dataset.id;
+  const arr=type==="area"?MAP_AREAS:MAP_ROADS,o=arr.find(x=>x.id===id);if(!o)return;
+  selectedMapObject={type,id};selectedId=null;
+  handle.setPointerCapture(e.pointerId);
+  resize={type,id,startX:e.clientX,startY:e.clientY,origW:npos(o.w,120),origH:npos(o.h,80)};
+  e.stopPropagation();return;
+ }
+ const mapEl=e.target.closest(".area,.road");
+ if(mapEl){
+  const type=mapEl.dataset.maptype,id=mapEl.dataset.id;
+  const arr=type==="area"?MAP_AREAS:MAP_ROADS,o=arr.find(x=>x.id===id);if(!o)return;
+  selectedMapObject={type,id};selectedId=null;showMapEditor(o,type);
+  mapEl.setPointerCapture(e.pointerId);
+  drag={id,startX:e.clientX,startY:e.clientY,origX:npos(o.x,0),origY:npos(o.y,0),moved:false,map:true,type};
+  return;
+ }
+ const el=e.target.closest(".plot");if(!el)return;
+ const id=el.dataset.id;selectedId=id;selectedMapObject=null;showEditor(properties.find(p=>p.ID===id));el.setPointerCapture(e.pointerId);
+ const p=properties.find(x=>x.ID===id);drag={id,startX:e.clientX,startY:e.clientY,origX:npos(p.X,50),origY:npos(p.Y,80),moved:false};
+});
+map.addEventListener("pointermove",e=>{
+ if(resize){
+  const dx=e.clientX-resize.startX,dy=e.clientY-resize.startY;
+  const arr=resize.type==="area"?MAP_AREAS:MAP_ROADS,o=arr.find(x=>x.id===resize.id);if(!o)return;
+  dirty=true;
+  if(resize.type==="area"){
+   o.w=Math.max(80,Math.round(resize.origW+dx));o.h=Math.max(60,Math.round(resize.origH+dy));
+  }else if(o.orientation==="v"){
+   o.w=Math.max(60,Math.round(resize.origW+dy));
+  }else{
+   o.w=Math.max(60,Math.round(resize.origW+dx));
+  }
+  const el=map.querySelector(`[data-id="${CSS.escape(o.id)}"]`);
+  if(el){
+   if(resize.type==="area"){el.style.width=o.w+"px";el.style.height=o.h+"px";}
+   else{el.style.width=(o.orientation==="v"?o.h:o.w)+"px";el.style.height=(o.orientation==="v"?o.w:o.h)+"px";}
+  }
+  mapStatus.textContent="Resizing • release to save";
+  return;
+ }
+ if(!drag)return;const dx=e.clientX-drag.startX,dy=e.clientY-drag.startY;if(Math.abs(dx)+Math.abs(dy)<3)return;
+ drag.moved=true;dirty=true;
+ if(drag.map){
+   const arr=drag.type==="area"?MAP_AREAS:MAP_ROADS,o=arr.find(x=>x.id===drag.id);if(!o)return;
+   o.x=Math.max(0,Math.round(drag.origX+dx));o.y=Math.max(0,Math.round(drag.origY+dy));
+   const el=map.querySelector(`[data-id="${CSS.escape(o.id)}"]`);if(el){el.style.left=o.x+"px";el.style.top=o.y+"px"}
+ }else{
+   const p=properties.find(x=>x.ID===drag.id);p.X=Math.max(0,Math.round(drag.origX+dx));p.Y=Math.max(0,Math.round(drag.origY+dy));
+   const el=map.querySelector(`[data-id="${CSS.escape(p.ID)}"]`);if(el){el.style.left=p.X+"px";el.style.top=p.Y+"px"}
+ }
+ mapStatus.textContent="Position changed • click ☁ Save to Sheet when you're done";
+});
+map.addEventListener("pointerup",()=>{
+ if(resize){const arr=resize.type==="area"?MAP_AREAS:MAP_ROADS;showMapEditor(arr.find(x=>x.id===resize.id),resize.type);resize=null;return;}
+ if(drag&&drag.moved){if(drag.map){const arr=drag.type==="area"?MAP_AREAS:MAP_ROADS;showMapEditor(arr.find(x=>x.id===drag.id),drag.type)}else showEditor(properties.find(p=>p.ID===drag.id));}
+ drag=null;
+});
+map.addEventListener("dblclick",e=>{
+ const el=e.target.closest(".plot,.area,.road");if(!el)return;
+ if(el.dataset.maptype){selectedMapObject={type:el.dataset.maptype,id:el.dataset.id};const arr=el.dataset.maptype==="area"?MAP_AREAS:MAP_ROADS;showMapEditor(arr.find(x=>x.id===el.dataset.id),el.dataset.maptype)}
+ else {selectedId=el.dataset.id;selectedMapObject=null;showEditor(properties.find(p=>p.ID===selectedId))}
+});
+function showEditor(p){
+ detailTitle.textContent=p.PLOT_NO||p.ID;detailSub.textContent=`${p.PROJECT||""} • ${p.BLOCK||""} • ${p.PROPERTY_TYPE||""}`;
+ editor.innerHTML=`<div class="help">Edit any field below. <b>Save Changes</b> applies it in this session. Click <b>☁ Save to Sheet</b> in the header when you're ready to sync everything (all plots, roads and areas) to your Google Sheet.</div>
+ ${section("Identity")}
+ <div class="grid">${field("ID","ID",p)}${field("Plot No.","PLOT_NO",p)}${field("Project","PROJECT",p)}${field("Block","BLOCK",p)}${field("Property Type","PROPERTY_TYPE",p)}${field("Size","SIZE",p)}${field("Width (ft)","WIDTH",p,"number")}${field("Length (ft)","LENGTH",p,"number")}</div>
+ ${section("Ownership & Status")}
+ <div class="grid">${selectField("Status","STATUS",p,["OWNED","FAMILY","PARTNERSHIP","BOOKED","TOKEN_PAID","BALLOT_APPLICATION","SELLING","SOLD","NOT_OWNED","UNKNOWN"])}${field("Owner","OWNER",p)}${field("Possession","POSSESSION",p)}${field("Documents","DOCUMENT_STATUS",p)}${field("Purchase Date","PURCHASE_DATE",p)}${field("Source","SOURCE",p)}</div>
+ ${section("Financials")}
+ <div class="grid">${field("Purchase Price (PKR)","PURCHASE_PRICE",p,"number")}${field("Current Value (PKR)","CURRENT_VALUE",p,"number")}${field("Monthly Rent (PKR)","RENT",p,"number")}${field("Tenant","TENANT",p)}</div>
+ ${section("Notes")}
+ <div class="grid">${field("Notes","NOTES",p,"textarea")}</div>
+ ${section("Visual Map Position")}
+ <div class="grid">${field("X position","X",p,"number")}${field("Y position","Y",p,"number")}${field("Visual Width","W",p,"number")}${field("Visual Height","H",p,"number")}</div>
+ <div class="savebar"><button class="btn primary" onclick="saveEditor()">Save Changes</button><button class="btn" onclick="cancelEditor()">Cancel</button></div>`;
+}
+function section(s){return `<div class="section">${s}</div>`}
+function field(label,key,p,type="text"){
+ const val=esc(p[key]);if(type==="textarea")return `<div class="field full"><label>${label}</label><textarea id="f_${key}">${val}</textarea></div>`;
+ return `<div class="field"><label>${label}</label><input id="f_${key}" type="${type}" value="${val}" ${key==="ID"?"disabled":""}></div>`;
+}
+function selectField(label,key,p,opts){return `<div class="field"><label>${label}</label><select id="f_${key}">${opts.map(o=>`<option value="${o}" ${p[key]===o?"selected":""}>${pretty(o)}</option>`).join("")}</select></div>`}
+function saveEditor(){
+ const p=properties.find(x=>x.ID===selectedId);if(!p)return;
+ HEADERS.forEach(k=>{const e=document.getElementById("f_"+k);if(!e)return;if(e.type==="number"||["WIDTH","LENGTH","PURCHASE_PRICE","CURRENT_VALUE","RENT","X","Y","W","H"].includes(k)){p[k]=e.value===""?"":Number(e.value)}else p[k]=e.value});
+ dirty=true;populateFilters();render();mapStatus.textContent="Changes updated • click ☁ Save to Sheet to sync";
+}
+function cancelEditor(){if(selectedId)showEditor(properties.find(p=>p.ID===selectedId))}
+function areaHTML(a){
+ return `<div class="area ${selectedMapObject?.type==="area"&&selectedMapObject.id===a.id?"selected":""}" data-maptype="area" data-id="${esc(a.id)}" style="left:${a.x}px;top:${a.y}px;width:${a.w}px;height:${a.h}px">
+   <div class="area-name">${esc(a.name)}</div><div class="area-sub">${esc(a.subtitle||"")}</div><div class="resize-handle" title="Drag to resize"></div></div>`;
+}
+function roadHTML(r){
+ return `<div class="road ${r.orientation==="v"?"v":"h"} ${selectedMapObject?.type==="road"&&selectedMapObject.id===r.id?"selected":""}" data-maptype="road" data-id="${esc(r.id)}" style="left:${r.x}px;top:${r.y}px;width:${r.orientation==="v"?r.h:r.w}px;height:${r.orientation==="v"?r.w:r.h}px">${esc(r.name)}<div class="resize-handle" title="Drag to resize length"></div></div>`;
+}
+function addArea(){
+ let i=1;while(MAP_AREAS.some(a=>a.id==="area-"+i))i++;
+ const a={id:"area-"+i,name:"New Area",subtitle:"Edit area name",x:100+i*30,y:100+i*20,w:450,h:240};
+ MAP_AREAS.push(a);selectedMapObject={type:"area",id:a.id};render();showMapEditor(a,"area");
+}
+function addRoad(){
+ let i=1;while(MAP_ROADS.some(a=>a.id==="road-"+i))i++;
+ const r={id:"road-"+i,name:"New Road",x:150+i*30,y:600,w:500,h:42,orientation:"h"};
+ MAP_ROADS.push(r);selectedMapObject={type:"road",id:r.id};render();showMapEditor(r,"road");
+}
+function showMapEditor(o,type){
+ detailTitle.textContent=type==="area"?"Area / Zone":"Road";
+ detailSub.textContent="Edit the map structure and visual label";
+ editor.innerHTML=`<div class="help">This is your own free-form canvas — name it whatever you like, drag it to position, and drag its blue resize handle on the map (or type exact Width/Height below) to resize it. These settings are saved in this browser session.</div>
+ ${section("Map Object")}
+ <div class="grid">
+ ${field("Name","name",o)}
+ ${field("Subtitle","subtitle",o)}
+ ${field("X","x",o,"number")}
+ ${field("Y","y",o,"number")}
+ ${field("Width","w",o,"number")}
+ ${field("Height","h",o,"number")}
+ ${type==="road"?`<div class="field"><label>Orientation</label><select id="f_orientation"><option value="h" ${o.orientation==="h"?"selected":""}>Horizontal</option><option value="v" ${o.orientation==="v"?"selected":""}>Vertical</option></select></div>`:""}
+ </div>
+ <div class="savebar"><button class="btn primary" onclick="saveMapEditor('${type}')">Save Changes</button><button class="btn danger" onclick="deleteMapObject('${type}')">Delete</button></div>`;
+}
+function saveMapEditor(type){
+ const arr=type==="area"?MAP_AREAS:MAP_ROADS,o=arr.find(x=>x.id===selectedMapObject.id);if(!o)return;
+ ["name","subtitle","x","y","w","h"].forEach(k=>{const e=document.getElementById("f_"+k);if(e)o[k]=["x","y","w","h"].includes(k)?Number(e.value):e.value});
+ if(type==="road"){const e=document.getElementById("f_orientation");if(e)o.orientation=e.value}
+ render();showMapEditor(o,type);mapStatus.textContent="Map structure updated • click ☁ Save to Sheet to sync";
+}
+function deleteMapObject(type){
+ if(!selectedMapObject)return;
+ if(!confirm("Delete this map object?"))return;
+ if(type==="area")MAP_AREAS=MAP_AREAS.filter(x=>x.id!==selectedMapObject.id);
+ else MAP_ROADS=MAP_ROADS.filter(x=>x.id!==selectedMapObject.id);
+ selectedMapObject=null;render();editor.innerHTML='<div class="empty">Map object deleted.</div>';
+}
+function addPlot(){
+ let i=1;while(properties.some(p=>p.ID==="NEW-"+i))i++;
+ const p=normalize({ID:"NEW-"+i,PROJECT:projectFilter.value==="ALL"?"New Project":projectFilter.value,BLOCK:blockFilter.value==="ALL"?"New Block":blockFilter.value,PLOT_NO:"NEW-"+i,PROPERTY_TYPE:"Residential",SIZE:"",WIDTH:0,LENGTH:0,STATUS:"UNKNOWN",OWNER:"",PURCHASE_PRICE:"",CURRENT_VALUE:"",RENT:"",TENANT:"",POSSESSION:"",DOCUMENT_STATUS:"",PURCHASE_DATE:"",SOURCE:"",NOTES:"",X:100,Y:100,W:100,H:65});
+ properties.push(p);selectedId=p.ID;dirty=true;populateFilters();render();showEditor(p);
+}
+function duplicatePlot(){
+ if(!selectedId)return alert("Select a plot first.");
+ const old=properties.find(p=>p.ID===selectedId), copy={...old};let i=1;while(properties.some(p=>p.ID===old.ID+"-"+i))i++;
+ copy.ID=old.ID+"-"+i;copy.PLOT_NO=(old.PLOT_NO||old.ID)+"-"+i;copy.X=npos(old.X,50)+25;copy.Y=npos(old.Y,80)+25;properties.push(copy);selectedId=copy.ID;dirty=true;render();showEditor(copy);
+}
+function deletePlot(){
+ if(!selectedId)return alert("Select a plot first.");
+ const p=properties.find(x=>x.ID===selectedId);if(!confirm(`Delete ${p?.PLOT_NO||selectedId}? This removes it from the current browser session.`))return;
+ properties=properties.filter(x=>x.ID!==selectedId);selectedId=null;dirty=true;populateFilters();render();editor.innerHTML='<div class="empty">Plot deleted • click ☁ Save to Sheet to sync the deletion.</div>';
+}
+
+function exportMap(){
+ const data={areas:MAP_AREAS,roads:MAP_ROADS};
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);a.download="property_map_layout.json";a.click();URL.revokeObjectURL(a.href);
+}
+function importMap(ev){
+ const f=ev.target.files[0];if(!f)return;
+ const reader=new FileReader();reader.onload=()=>{
+  try{const d=JSON.parse(reader.result);if(Array.isArray(d.areas))MAP_AREAS=d.areas;if(Array.isArray(d.roads))MAP_ROADS=d.roads;render();mapStatus.textContent="Map layout loaded";}catch(e){alert("Invalid map layout JSON.")}};
+ reader.readAsText(f);
+}
+function exportCSV(){
+ const csv=[HEADERS,...properties.map(p=>HEADERS.map(h=>csvCell(p[h])))].map(r=>r.join(",")).join("\r\n");
+ const blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="property_inventory_updated.csv";a.click();URL.revokeObjectURL(a.href);
+ mapStatus.textContent="Local CSV backup downloaded • use ☁ Save to Sheet for your real sync";
+}
+function csvCell(v){const s=String(v??"");return `"${s.replace(/"/g,'""')}"`}
+function statusClass(s){s=String(s||"UNKNOWN").toUpperCase();if(s==="OWNED")return"owned";if(["FAMILY","PARTNERSHIP"].includes(s))return"family";if(["BOOKED","TOKEN_PAID"].includes(s))return"booked";if(s==="BALLOT_APPLICATION")return"application";if(s==="SELLING")return"selling";if(s==="SOLD")return"sold";if(s==="NOT_OWNED")return"notowned";return"unknown"}
+function n(v){const x=Number(String(v??"").replace(/[^\d.-]/g,""));return isFinite(x)?x:0}function npos(v,d){const x=Number(v);return isFinite(x)?x:d}function n2(v,d){const x=Number(v);return isFinite(x)&&v!==""?x:d}
+function money(v){const x=n(v);if(!x)return"Rs 0";if(Math.abs(x)>=1e7)return"Rs "+(x/1e7).toFixed(2)+" Cr";if(Math.abs(x)>=1e5)return"Rs "+(x/1e5).toFixed(2)+" L";return"Rs "+Math.round(x).toLocaleString("en-PK")}
+function pretty(v){return String(v||"").replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase())}
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+window.addEventListener("beforeunload",e=>{if(dirty){e.preventDefault();e.returnValue="";}});
+loadData();
+</script>
+</body>
+</html>
