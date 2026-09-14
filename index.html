@@ -40,11 +40,38 @@ linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-siz
 .empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:12px}
 .stats{display:flex;gap:7px;padding:9px 10px;border-bottom:1px solid var(--line);overflow:auto}.stat{min-width:120px;background:var(--panel);border:1px solid var(--line);padding:8px;border-radius:6px}.stat b{display:block;font-size:15px}.stat span{font-size:9px;color:var(--muted)}
 .help{padding:10px;background:#101b30;border:1px solid #28446b;border-radius:7px;color:#b8c8e2;font-size:10px;line-height:1.5;margin-bottom:10px}
+
+/* Loading overlay */
+.loading-overlay{position:fixed;inset:0;background:#0a0f1cf0;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .25s ease}
+.loading-overlay.hidden{opacity:0;pointer-events:none}
+.spinner{width:44px;height:44px;border:4px solid #223255;border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:var(--text);font-size:14px;font-weight:600}
+.loading-sub{color:var(--muted);font-size:11px}
+.btn.loading{position:relative;color:transparent}
+.btn.loading::after{content:"";position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border:2px solid #ffffff55;border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+
+/* Mobile header/actions */
+@media(max-width:760px){
+ header{height:auto;flex-direction:column;align-items:stretch;padding:10px 12px;gap:8px}
+ header .sub{display:none}
+ .actions{width:100%;gap:6px}
+ .actions .btn,.actions label.btn{flex:1 1 calc(50% - 6px);padding:9px 6px;font-size:11.5px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+@media(max-width:420px){
+ .actions .btn,.actions label.btn{flex:1 1 100%}
+}
+
 @media(max-width:1000px){main{grid-template-columns:1fr}.panel{border-left:0;border-top:1px solid var(--line);max-height:none}.map-area{height:650px;flex:none}}
 </style>
 </head>
 <body>
 <div class="app">
+<div id="loadingOverlay" class="loading-overlay">
+ <div class="spinner"></div>
+ <div class="loading-text" id="loadingText">Loading property data…</div>
+ <div class="loading-sub">Connecting to Google Sheet, this can take a few seconds</div>
+</div>
 <header>
  <div><h1>Property Inventory Command Center</h1><div class="sub">Editable visual inventory • Google Sheets database • drag & drop plots, roads and areas on a blank canvas</div></div>
  <div class="actions">
@@ -140,8 +167,9 @@ function loadData(){
  if(!WEB_APP_URL){
   properties=properties.length?properties:demoData.map(p=>({...p}));
   status.textContent="Not connected to a Google Sheet yet • click ⚙ Connect Sheet above (see SETUP.md) • showing sample data for now";
-  populateFilters();render();return;
+  populateFilters();render();hideLoadingOverlay();return;
  }
+ showLoadingOverlay("Loading property data…");
  status.textContent="Loading from Google Sheet…";
  fetch(`${WEB_APP_URL}?action=read&t=${Date.now()}`)
  .then(r=>{if(!r.ok)throw Error("HTTP "+r.status);return r.json()})
@@ -154,10 +182,21 @@ function loadData(){
   status.textContent=`Loaded ${properties.length} plot(s), ${MAP_AREAS.length} area(s), ${MAP_ROADS.length} road(s) from Google Sheet • ${new Date().toLocaleTimeString()}`;
   populateFilters();render();
  })
- .catch(e=>{console.error(e);status.textContent="Could not load your Google Sheet — check the Web App URL, deployment access ('Anyone'), and that Apps Script is redeployed after edits.";});
+ .catch(e=>{console.error(e);status.textContent="Could not load your Google Sheet — check the Web App URL, deployment access ('Anyone'), and that Apps Script is redeployed after edits.";})
+ .finally(()=>{hideLoadingOverlay();});
+}
+function showLoadingOverlay(text){
+ const o=document.getElementById("loadingOverlay");if(!o)return;
+ const t=document.getElementById("loadingText");if(t&&text)t.textContent=text;
+ o.classList.remove("hidden");
+}
+function hideLoadingOverlay(){
+ const o=document.getElementById("loadingOverlay");if(o)o.classList.add("hidden");
 }
 function saveToSheet(){
  if(!WEB_APP_URL){promptWebAppUrl();return;}
+ const btn=document.querySelector('[onclick="saveToSheet()"]');
+ if(btn)btn.classList.add("loading");
  mapStatus.textContent="Saving to Google Sheet…";
  fetch(WEB_APP_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({properties,mapAreas:MAP_AREAS,mapRoads:MAP_ROADS})})
  .then(r=>{if(!r.ok)throw Error("HTTP "+r.status);return r.json()})
@@ -165,7 +204,8 @@ function saveToSheet(){
   if(j.status!=="ok")throw Error(j.message||"Sheet returned an error");
   dirty=false;mapStatus.textContent="Saved to Google Sheet • "+new Date().toLocaleTimeString();
  })
- .catch(e=>{console.error(e);mapStatus.textContent="Save failed — check the Web App URL / deployment access, then try again.";});
+ .catch(e=>{console.error(e);mapStatus.textContent="Save failed — check the Web App URL / deployment access, then try again.";})
+ .finally(()=>{if(btn)btn.classList.remove("loading");});
 }
 function promptWebAppUrl(){
  // The sheet URL is hardcoded for this deployment phase, so this is just
