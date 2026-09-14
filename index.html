@@ -48,7 +48,7 @@ linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-siz
 <header>
  <div><h1>Property Inventory Command Center</h1><div class="sub">Editable visual inventory • Google Sheets database • drag & drop plots, roads and areas on a blank canvas</div></div>
  <div class="actions">
-  <button class="btn" onclick="promptWebAppUrl()">⚙ Connect Sheet</button>
+  <button class="btn" onclick="promptWebAppUrl()">⚙ Override Sheet (temp)</button>
   <button class="btn" onclick="loadData()">↻ Reload from Sheet</button>
   <button class="btn primary" onclick="saveToSheet()">☁ Save to Sheet</button>
   <button class="btn" onclick="addPlot()">＋ Add Plot</button>
@@ -98,13 +98,20 @@ linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-siz
 // This file talks to YOUR Google Sheet through a tiny Apps Script
 // "Web App" that you deploy once (free, no server needed). It can
 // both READ and WRITE, so your inventory persists between visits
-// instead of resetting. Click "⚙ Connect Sheet" in the header and
-// follow SETUP.md (shared alongside this file) to get your URL,
-// then paste it in — it's remembered in this browser afterwards.
+// instead of resetting.
+//
+// DEPLOYMENT PHASE NOTE: the Web App URL below is hardcoded, so every
+// visitor is connected to the same sheet automatically — no one needs
+// to click "Connect Sheet" or paste a URL in. That button is still
+// there as a manual override (e.g. to point at a different sheet for
+// testing), but it only affects the current browser tab and resets on
+// reload.
 // =============================================================
-//let WEB_APP_URL = localStorage.getItem("PROPCC_WEBAPP_URL") || ""; //old code 
-let WEB_APP_URL = localStorage.getItem("https://script.google.com/macros/s/AKfycbzNWQkFpzdw1Bv9uJcI9iQMClWtP2obOJQzWLQ7uSlzUmHbG-gFjZsRaw3H8YLw6Gkw/exec") || ""; // hardcoding the google sheet from Asfand Account
- 
+// Hardcoded for this deployment phase — every visitor loads this sheet
+// automatically, no "Connect Sheet" step needed. Change this string if
+// you redeploy the Apps Script and get a new URL.
+let WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzNWQkFpzdw1Bv9uJcI9iQMClWtP2obOJQzWLQ7uSlzUmHbG-gFjZsRaw3H8YLw6Gkw/exec";
+
 const HEADERS = [
  "ID","PROJECT","BLOCK","PLOT_NO","PROPERTY_TYPE","SIZE","WIDTH","LENGTH",
  "STATUS","OWNER","PURCHASE_PRICE","CURRENT_VALUE","RENT","TENANT",
@@ -161,10 +168,12 @@ function saveToSheet(){
  .catch(e=>{console.error(e);mapStatus.textContent="Save failed — check the Web App URL / deployment access, then try again.";});
 }
 function promptWebAppUrl(){
- const url=prompt("Paste your Google Apps Script Web App URL (see SETUP.md for how to get this):",WEB_APP_URL||"");
+ // The sheet URL is hardcoded for this deployment phase, so this is just
+ // a manual override for the current tab (e.g. testing another sheet) —
+ // it does not persist and reloading the page goes back to the hardcoded URL.
+ const url=prompt("Web App URL (hardcoded for this deployment — this override only lasts for this tab):",WEB_APP_URL||"");
  if(url===null)return;
  WEB_APP_URL=url.trim();
- localStorage.setItem("PROPCC_WEBAPP_URL",WEB_APP_URL);
  if(WEB_APP_URL)loadData();else mapStatus.textContent="Disconnected from Google Sheets • working locally only";
 }
 function normalize(o){
