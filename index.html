@@ -102,8 +102,9 @@ linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-siz
 // follow SETUP.md (shared alongside this file) to get your URL,
 // then paste it in — it's remembered in this browser afterwards.
 // =============================================================
-let WEB_APP_URL = localStorage.getItem("PROPCC_WEBAPP_URL") || "";
-
+//let WEB_APP_URL = localStorage.getItem("PROPCC_WEBAPP_URL") || ""; //old code 
+let WEB_APP_URL = localStorage.getItem("https://script.google.com/macros/s/AKfycbzNWQkFpzdw1Bv9uJcI9iQMClWtP2obOJQzWLQ7uSlzUmHbG-gFjZsRaw3H8YLw6Gkw/exec") || ""; // hardcoding the google sheet from Asfand Account
+ 
 const HEADERS = [
  "ID","PROJECT","BLOCK","PLOT_NO","PROPERTY_TYPE","SIZE","WIDTH","LENGTH",
  "STATUS","OWNER","PURCHASE_PRICE","CURRENT_VALUE","RENT","TENANT",
