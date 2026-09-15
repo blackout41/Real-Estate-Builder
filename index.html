@@ -15,26 +15,50 @@ main{display:grid;grid-template-columns:1fr 390px;min-height:calc(100vh - 68px)}
 .workspace{min-width:0;display:flex;flex-direction:column}.toolbar{padding:10px;border-bottom:1px solid var(--line);display:flex;gap:7px;flex-wrap:wrap;background:#0e1626}
 input,select,textarea{background:#0c1423;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:8px}.search{flex:1;min-width:220px}
 .map-area{position:relative;flex:1;overflow:auto;background:
-linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
-linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:40px 40px}
+radial-gradient(circle 5px at 15% 22%, #3f6b3f 45%, transparent 46%),
+radial-gradient(circle 4px at 53% 58%, #416e3d 45%, transparent 46%),
+radial-gradient(circle 6px at 82% 28%, #345a36 45%, transparent 46%),
+radial-gradient(circle 3px at 32% 82%, #355c37 45%, transparent 46%),
+radial-gradient(circle 4px at 72% 86%, #46703f 45%, transparent 46%),
+radial-gradient(circle 3px at 6% 65%, #345a36 45%, transparent 46%),
+radial-gradient(circle 5px at 92% 62%, #3f6b3f 45%, transparent 46%),
+linear-gradient(180deg,#4f7d4a,#436b40 45%,#3a5e39);
+background-repeat:repeat,repeat,repeat,repeat,repeat,repeat,repeat,no-repeat;
+background-size:220px 220px,220px 220px,220px 220px,220px 220px,220px 220px,220px 220px,220px 220px,100% 100%}
 .map{position:relative;width:2200px;height:1400px}
-.road{position:absolute;background:#28354d;border:1px solid #3b4b69;color:#a9b7d0;font-size:10px;display:flex;align-items:center;justify-content:center;letter-spacing:1px;cursor:grab;z-index:2}
+.road{position:absolute;border-radius:3px;color:#eceef0;font-size:10px;display:flex;align-items:center;justify-content:center;letter-spacing:1px;cursor:grab;z-index:2;
+ background-color:#3a3d43;border:2px solid #23262b;box-shadow:inset 0 0 0 3px #585c63,0 3px 7px #0008;text-shadow:0 1px 2px #000a}
+.road.h{background-image:repeating-linear-gradient(90deg,#e9d76e 0 16px,transparent 16px 30px);background-repeat:repeat-x;background-position:0 50%;background-size:100% 2px}
+.road.v{background-image:repeating-linear-gradient(0deg,#e9d76e 0 16px,transparent 16px 30px);background-repeat:repeat-y;background-position:50% 0;background-size:2px 100%}
 .road.selected,.area.selected{outline:2px solid #fff}
-.area{position:absolute;border:1px dashed #526684;background:#ffffff04;border-radius:12px;padding:14px;cursor:grab;z-index:1}
-.area .area-name{font-size:17px;font-weight:800;color:#7385a3;letter-spacing:1px}.area .area-sub{font-size:10px;color:#52627e;margin-top:3px}
+.area{position:absolute;border:2px dashed rgba(255,255,255,.4);background:
+ repeating-linear-gradient(0deg,rgba(0,0,0,.06) 0 2px,transparent 2px 40px),
+ repeating-linear-gradient(90deg,rgba(0,0,0,.06) 0 2px,transparent 2px 40px),
+ linear-gradient(160deg,#5f7e55,#4c6944);border-radius:12px;padding:14px;cursor:grab;z-index:1;box-shadow:inset 0 0 30px #0004}
+.area .area-name{font-size:14px;font-weight:800;color:#fff3da;letter-spacing:1px;display:inline-block;background:linear-gradient(180deg,#8a5a2e,#6b431f);border:1px solid #472c12;padding:4px 11px;border-radius:4px;box-shadow:0 3px 6px #0007}
+.area .area-sub{font-size:10px;color:#e9efdc;opacity:.85;margin-top:5px}
 .road.h{height:42px}.road.v{width:42px}
 .resize-handle{position:absolute;background:var(--accent);border:1px solid #0a0f1c;z-index:6;touch-action:none}
 .area .resize-handle{width:14px;height:14px;right:-7px;bottom:-7px;border-radius:4px;cursor:nwse-resize}
 .road.h .resize-handle{width:10px;height:100%;right:-5px;top:0;border-radius:3px;cursor:ew-resize}
 .road.v .resize-handle{height:10px;width:100%;bottom:-5px;left:0;border-radius:3px;cursor:ns-resize}
 .map-empty-hint{position:absolute;left:50%;top:40px;transform:translateX(-50%);color:#42506e;font-size:12px;border:1px dashed #2a3852;border-radius:10px;padding:10px 16px;pointer-events:none}
-.plot{position:absolute;z-index:10;border:1px solid #6c7d9b;border-radius:5px;color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px;user-select:none;cursor:grab;overflow:hidden;min-width:45px;min-height:35px;box-shadow:0 2px 7px #0007}
-.plot:active{cursor:grabbing}.plot:hover{filter:brightness(1.15);z-index:20}.plot.selected{outline:2px solid white;z-index:30}
-.plot .pid{font-weight:800;font-size:11px}.plot .psize{font-size:9px}.plot .powner{font-size:8px;color:#d1dbed;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:95%}
-.owned{background:#15543e}.family{background:#18527c}.booked{background:#78601d}.application{background:#593b7f}.selling{background:#824725}.sold{background:#5a2937}.notowned{background:#303b51}.unknown{background:#3d4655}
-.block-label{position:absolute;font-size:20px;font-weight:800;color:#60708e;letter-spacing:2px;pointer-events:none}
+.plot{position:absolute;z-index:10;border:1px solid rgba(255,255,255,.18);border-radius:7px;color:white;user-select:none;cursor:grab;overflow:hidden;min-width:45px;min-height:35px;
+ box-shadow:0 3px 9px #0007,inset 0 0 0 1px rgba(0,0,0,.25);
+ background:radial-gradient(ellipse at 50% 88%,rgba(255,255,255,.10),transparent 55%),linear-gradient(180deg,#5c8451,#3f6238 65%,#33512e)}
+.plot:active{cursor:grabbing}.plot:hover{filter:brightness(1.12);z-index:20}.plot.selected{outline:2px solid white;z-index:30}
+.plot-ground{position:absolute;left:8%;right:8%;bottom:4%;height:20%;border-radius:50%;background:radial-gradient(ellipse at center,rgba(0,0,0,.22),transparent 72%);pointer-events:none}
+.plot-icon{position:absolute;left:50%;top:4%;width:62%;height:56%;transform:translateX(-50%);pointer-events:none}
+.plot-icon .roof{fill:var(--c)}.plot-icon .body{fill:var(--c2)}.plot-icon .body2{fill:var(--c2);opacity:.9}
+.plot-icon .win{fill:#cfe6ff;opacity:.85}.plot-icon .door{fill:#1a1f2b}
+.plot-icon .post{fill:#8a6136}.plot-icon .flag{fill:var(--c)}.plot-icon .mound{fill:#000;opacity:.15}
+.plot-tag{position:absolute;left:4%;right:4%;bottom:4%;text-align:center;border-radius:4px;padding:2px 3px 3px;
+ background:linear-gradient(180deg,var(--c),var(--c2));border:1px solid rgba(0,0,0,.35);box-shadow:0 2px 4px #0007}
+.plot .pid{font-weight:800;font-size:11px;text-shadow:0 1px 1px #0007}.plot .psize{font-size:9px;opacity:.95}.plot .powner{font-size:8px;color:#eef2fa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.owned{--c:#1f8a5a;--c2:#0f4a30}.family{--c:#2f83c4;--c2:#153c5e}.booked{--c:#cf9f2e;--c2:#6b4f10}.application{--c:#9463d6;--c2:#402c66}.selling{--c:#d0752e;--c2:#6b3410}.sold{--c:#c23e57;--c2:#5c1a29}.notowned{--c:#6a7896;--c2:#333b4e}.unknown{--c:#7c869e;--c2:#3a3f4d}
+.block-label{position:absolute;font-size:20px;font-weight:800;color:#eef4de;letter-spacing:2px;pointer-events:none;text-shadow:0 2px 4px #0008}
 .statusbar{position:absolute;left:12px;bottom:12px;background:#0c1423dd;border:1px solid var(--line);border-radius:7px;padding:7px 10px;color:var(--muted);font-size:10px;z-index:50}
-.legend{padding:7px 10px;border-top:1px solid var(--line);display:flex;gap:12px;flex-wrap:wrap;background:#0d1422}.legend span{font-size:10px;color:var(--muted)}.dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px}
+.legend{padding:7px 10px;border-top:1px solid var(--line);display:flex;gap:12px;flex-wrap:wrap;background:#0d1422}.legend span{font-size:10px;color:var(--muted)}.dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;background:var(--c,#666)}
 .panel{background:var(--panel);border-left:1px solid var(--line);overflow:auto}.panel-head{padding:15px;border-bottom:1px solid var(--line)}.panel-head h2{font-size:17px;margin:0}.panel-head p{font-size:11px;color:var(--muted);margin:4px 0 0}.editor{padding:13px}.section{font-size:10px;color:#7f91af;text-transform:uppercase;letter-spacing:1px;margin:12px 0 7px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.field{display:flex;flex-direction:column;gap:4px}.field.full{grid-column:1/-1}.field label{font-size:9px;color:var(--muted);text-transform:uppercase}.field input,.field select,.field textarea{width:100%}.field textarea{min-height:70px;resize:vertical}
 .savebar{position:sticky;bottom:0;padding:10px 13px;background:#0d1422;border-top:1px solid var(--line);display:flex;gap:7px}.savebar button{flex:1}
 .empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:12px}
@@ -73,7 +97,7 @@ linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-siz
  <div class="loading-sub">Connecting to Google Sheet, this can take a few seconds</div>
 </div>
 <header>
- <div><h1>Property Inventory Command Center</h1><div class="sub">Editable visual inventory • Google Sheets database • drag & drop plots, roads and areas on a blank canvas</div></div>
+ <div><h1>Property Inventory Command Center</h1><div class="sub">Editable visual site map • Google Sheets database • drag & drop plots, roads and zones across a realistic terrain layout</div></div>
  <div class="actions">
   <button class="btn" onclick="promptWebAppUrl()">⚙ Override Sheet (temp)</button>
   <button class="btn" onclick="loadData()">↻ Reload from Sheet</button>
@@ -106,7 +130,7 @@ linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-siz
  </div>
  <div class="map-area" id="mapArea">
   <div id="map" class="map"></div>
-  <div class="statusbar" id="mapStatus">Drag a plot, road or area to reposition it • drag the blue handle to resize a road/area • double-click anything to edit its name/size</div>
+  <div class="statusbar" id="mapStatus">Drag a plot, road or zone to reposition it on the terrain • drag the blue handle to resize a road/zone • double-click anything to edit its name/size • constructed plots show a house/plaza, vacant plots show a staked sign</div>
  </div>
  <div class="legend">
   <span><i class="dot owned"></i>Owned</span><span><i class="dot family"></i>Family/Partner</span><span><i class="dot booked"></i>Booked/Token</span><span><i class="dot application"></i>Ballot</span><span><i class="dot selling"></i>Selling</span><span><i class="dot sold"></i>Sold</span><span><i class="dot notowned"></i>Not Owned</span><span><i class="dot unknown"></i>Unknown</span>
@@ -166,7 +190,7 @@ function loadData(){
  const status=document.getElementById("mapStatus");
  if(!WEB_APP_URL){
   properties=properties.length?properties:demoData.map(p=>({...p}));
-  status.textContent="Not connected to a Google Sheet yet • click ⚙ Connect Sheet above (see SETUP.md) • showing sample data for now";
+  status.textContent="Not connected to a Google Sheet yet • click ⚙ Connect Sheet above (see SETUP.md) • showing sample plots on the map for now";
   populateFilters();render();hideLoadingOverlay();return;
  }
  showLoadingOverlay("Loading property data…");
@@ -238,7 +262,7 @@ function render(){
  sValue.textContent=money(rows.reduce((a,p)=>a+n(p.CURRENT_VALUE),0));sCost.textContent=money(rows.reduce((a,p)=>a+n(p.PURCHASE_PRICE),0));sRent.textContent=money(rows.reduce((a,p)=>a+n(p.RENT),0));
  let html="";
   if(MAP_AREAS.length===0&&MAP_ROADS.length===0){
-   html+=`<div class="map-empty-hint">Blank canvas — use “＋ Add Area” / “＋ Add Road” above to start building your own map layout.</div>`;
+   html+=`<div class="map-empty-hint">Empty terrain — use “＋ Add Area” / “＋ Add Road” above to start laying out zones and roads on the map.</div>`;
   }
   MAP_AREAS.forEach(a=>{html+=areaHTML(a)});
   MAP_ROADS.forEach(r=>{html+=roadHTML(r)});
@@ -246,10 +270,36 @@ function render(){
  map.innerHTML=html;
  if(selectedId){const p=properties.find(x=>x.ID===selectedId);if(p) showEditor(p)}
 }
+function plotVisual(p){
+ // Decides whether a plot is drawn as a constructed building or a bare/staked lot.
+ const type=(p.PROPERTY_TYPE||"").toLowerCase(),status=(p.STATUS||"").toUpperCase();
+ const built=["OWNED","FAMILY","PARTNERSHIP"].includes(status);
+ if(built&&(type.includes("plaza")||type.includes("commercial")||type.includes("shop")))return"plaza";
+ if(built)return"house";
+ return"sign";
+}
+function winRects(x0,y0,cols,rows,gx,gy,w,h){
+ let s="";for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)s+=`<rect class="win" x="${x0+c*gx}" y="${y0+r*gy}" width="${w}" height="${h}"/>`;
+ return s;
+}
+function plotIcon(v){
+ if(v==="plaza")return `<svg class="plot-icon" viewBox="0 0 64 56" preserveAspectRatio="xMidYMax meet">
+  <rect class="body2" x="5" y="30" width="15" height="20" rx="1"/><rect class="body2" x="44" y="30" width="15" height="20" rx="1"/>
+  <rect class="body" x="11" y="18" width="42" height="32" rx="1"/><rect class="roof" x="9" y="13" width="46" height="6" rx="1"/>
+  ${winRects(15,24,4,2,10,8,6,5)}<rect class="door" x="27" y="40" width="10" height="10"/></svg>`;
+ if(v==="house")return `<svg class="plot-icon" viewBox="0 0 64 56" preserveAspectRatio="xMidYMax meet">
+  <polygon class="roof" points="32,8 58,28 6,28"/><rect class="body" x="14" y="27" width="36" height="22"/>
+  <rect class="win" x="18" y="32" width="8" height="8"/><rect class="win" x="38" y="32" width="8" height="8"/>
+  <rect class="door" x="28" y="37" width="8" height="12"/></svg>`;
+ return `<svg class="plot-icon" viewBox="0 0 64 56" preserveAspectRatio="xMidYMax meet">
+  <ellipse class="mound" cx="32" cy="49" rx="16" ry="4"/><rect class="post" x="30" y="12" width="3" height="36"/>
+  <polygon class="flag" points="33,12 56,18 33,24"/></svg>`;
+}
 function plotHTML(p){
- const cls=statusClass(p.STATUS),x=npos(p.X,50),y=npos(p.Y,80),w=npos(p.W,100),h=npos(p.H,65);
+ const cls=statusClass(p.STATUS),x=npos(p.X,50),y=npos(p.Y,80),w=npos(p.W,100),h=npos(p.H,65),v=plotVisual(p);
  return `<div class="plot ${cls} ${selectedId===p.ID?"selected":""}" data-id="${esc(p.ID)}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">
- <div class="pid">${esc(p.PLOT_NO||p.ID)}</div><div class="psize">${esc(p.SIZE||"")}</div><div class="powner">${esc(p.OWNER||pretty(p.STATUS))}</div></div>`;
+ <div class="plot-ground"></div>${plotIcon(v)}
+ <div class="plot-tag"><div class="pid">${esc(p.PLOT_NO||p.ID)}</div><div class="psize">${esc(p.SIZE||"")}</div><div class="powner">${esc(p.OWNER||pretty(p.STATUS))}</div></div></div>`;
 }
 // Pointer drag: moves/resizes plots, roads & areas without a library.
 let drag=null, resize=null;
@@ -366,7 +416,7 @@ function addRoad(){
 function showMapEditor(o,type){
  detailTitle.textContent=type==="area"?"Area / Zone":"Road";
  detailSub.textContent="Edit the map structure and visual label";
- editor.innerHTML=`<div class="help">This is your own free-form canvas — name it whatever you like, drag it to position, and drag its blue resize handle on the map (or type exact Width/Height below) to resize it. These settings are saved in this browser session.</div>
+ editor.innerHTML=`<div class="help">This is your own free-form terrain — name it whatever you like, drag it to position, and drag its blue resize handle on the map (or type exact Width/Height below) to resize it. These settings are saved in this browser session.</div>
  ${section("Map Object")}
  <div class="grid">
  ${field("Name","name",o)}
